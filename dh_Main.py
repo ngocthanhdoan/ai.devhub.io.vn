@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, g
+from flask import Flask, jsonify, request, g, send_from_directory
 import logging
 from collections import defaultdict
 import time
@@ -8,13 +8,18 @@ from dh_plugins.dh_QRProcessor import dh_QRProcessor
 import tempfile
 from PIL import Image
 import io
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='ui-project/dist', static_url_path='')
 
 # Configure logging
 logging.basicConfig(filename='api.log', level=logging.INFO, 
                     format='%(asctime)s %(levelname)s %(message)s')
 
+ #flask-cors
+from flask_cors import CORS
+
+CORS(app)
 # Initialize counters for statistics
 stats = defaultdict(lambda: {'success': 0, 'failure': 0})
 
@@ -66,6 +71,7 @@ def health_check():
     except Exception as e:
         logging.error(f'Health check {request.path} failure: {e}')
         return jsonify({"status": "unhealthy"}), 500
+
 @app.route('/api/ocr', methods=['POST'])
 def ocr():
     try:
@@ -98,28 +104,14 @@ def ocr():
         logging.error(f'POST {request.path} failure: {e}')
         return jsonify({"error": "Internal Server Error"}), 500
 
-@app.route('/api/qr', methods=['POST'])
-def qr():
-    try:
-        if 'image' not in request.files:
-            return jsonify({"error": "No image provided"}), 400
-        image = request.files['image']
-        if image.filename == '':
-            return jsonify({"error": "No selected file"}), 400
-        image_bytes = image.read()
-    
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            temp_file.write(image_bytes)
-            temp_file.flush()
-            processor = dh_QRProcessor(temp_file.name)
-        
-        stats[request.path]['success'] += 1
-        logging.info(f'POST {request.path} success')
-        return jsonify(processor.get_info_citizendid()), 200
-    except Exception as e:
-        stats[request.path]['failure'] += 1
-        logging.error(f'POST {request.path} failure: {e}')
-        return jsonify({"error": "Internal Server Error"}), 500
+# Serve the frontend
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

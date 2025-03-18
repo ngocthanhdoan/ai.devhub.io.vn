@@ -14,3 +14,4 @@ ollama
 qreader
 Flask
 pdf2image
+flask-cors
