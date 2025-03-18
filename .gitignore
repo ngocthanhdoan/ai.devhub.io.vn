@@ -1,0 +1,6 @@
+**/*.Identifier
+**/*.DS_Store
+**/*.:Zone.Identifier
+**/__pycache__/
+**/*.py[cod]
+dh_local_test

@@ -12,3 +12,5 @@ tqdm
 logging
 ollama
 qreader
+Flask
+pdf2image
