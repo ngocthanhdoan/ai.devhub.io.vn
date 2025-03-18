@@ -1,0 +1,14 @@
+paddlepaddle 
+opencv-python 
+numpy
+paddleocr
+uuid
+pytesseract
+vietocr
+pillow
+torch
+torchvision
+tqdm
+logging
+ollama
+qreader
