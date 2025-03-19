@@ -96,7 +96,7 @@ class dh_OCRProcessor:
 
 # === Chạy thử nghiệm ===
 def main():
-    image_path = "/root/ai.devhub.io.vn/Test3.png"
+    image_path = "/home/Code/Python/pyocr/Test14.png"
     try:
         with open(image_path, "rb") as f:
             file_content = f.read()

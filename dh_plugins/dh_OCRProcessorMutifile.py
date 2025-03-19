@@ -7,7 +7,11 @@ from PIL import Image
 from pdf2image import convert_from_bytes
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
-
+# Author: DoanNgocThanh 
+# Github: 
+# QRProcessor class for QR code tasks (Nhận diện và xử lý dữ liệu quang học từ file)
+# - https://github.com/pbcquoc/vietocr
+# - https://github.com/PaddlePaddle/PaddleOCR
 class dh_OCRProcessorMutifile:
     def __init__(self, use_gpu=False, vietocr_model="vgg_seq2seq"):
         self.use_gpu = use_gpu
@@ -30,17 +34,20 @@ class dh_OCRProcessorMutifile:
         return Predictor(config)
     
     def preprocess_image(self, file_content, file_type):
-        """Chuyển đổi file ảnh thành dạng có thể xử lý bằng OpenCV."""
+        """Chuyển đổi file ảnh thành dạng có thể xử lý bằng OpenCV, giảm dung lượng để tối ưu."""
         try:
             images = []
             if file_type == 'pdf':
-                images = convert_from_bytes(file_content)
+                # Chuyển đổi PDF thành danh sách ảnh
+                images = convert_from_bytes(file_content, dpi=150)  # Giảm DPI để giảm dung lượng
             elif file_type == 'tiff':
+                # Chuyển đổi TIFF thành danh sách ảnh
                 pil_images = Image.open(file_content)
                 for i in range(pil_images.n_frames):
                     pil_images.seek(i)
                     images.append(pil_images.copy())
             else:
+                # Đọc ảnh từ file bytes
                 file_bytes = np.frombuffer(file_content, np.uint8)
                 img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
                 if img is not None:
@@ -49,11 +56,23 @@ class dh_OCRProcessorMutifile:
             processed_images = []
             for img in images:
                 if isinstance(img, Image.Image):
+                    # Chuyển đổi từ PIL Image sang OpenCV
                     img = np.array(img)
                     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
                 if img is None:
                     raise ValueError("Không thể đọc ảnh")
-                img = cv2.resize(img, (800, 800))  # Resize để tăng tốc xử lý
+                
+                # Resize ảnh để giảm kích thước và tăng tốc xử lý
+                height, width = img.shape[:2]
+                max_dim = 800
+                if max(height, width) > max_dim:
+                    scale = max_dim / max(height, width)
+                    img = cv2.resize(img, (int(width * scale), int(height * scale)), interpolation=cv2.INTER_AREA)
+                
+                # Nén ảnh để giảm dung lượng
+                _, encoded_img = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                img = cv2.imdecode(encoded_img, cv2.IMREAD_COLOR)
+                
                 processed_images.append(img)
             return processed_images
         except Exception as e:

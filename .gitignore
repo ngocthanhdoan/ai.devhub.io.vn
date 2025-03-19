@@ -4,3 +4,5 @@
 **/__pycache__/
 **/*.py[cod]
 dh_local_test
+.env
+images/

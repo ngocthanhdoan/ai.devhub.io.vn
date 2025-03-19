@@ -1,25 +1,55 @@
 <template>
-  <div id="app">
-    <ApiInterface />
+  <div class="antialiased bg-gray-50 dark:bg-gray-900" v-if="isAuthenticated">
+    <Header />
+    <Sidebar />
+    <main class="p-4 md:ml-64 h-auto pt-20">
+     
+      <router-view />
+
+    </main>
+    <Footer />
+  </div>
+  <div v-else>
+    <div>
+      <router-view />
+    </div>
   </div>
 </template>
 
-<script>
-import ApiInterface from './components/ApiInterface.vue';
+<script setup>
+import { ref, onMounted } from 'vue';
+import Header from "./components/Header.vue";
+import Sidebar from "./components/Sidebar.vue";
+import Footer from "./components/Footer.vue";
+import {
+  initAccordions,
+  initCarousels,
+  initCollapses,
+  initDials,
+  initDismisses,
+  initDrawers,
+  initDropdowns,
+  initModals,
+  initPopovers,
+  initTabs,
+  initTooltips
+} from 'flowbite';
 
-export default {
-  name: 'App',
-  components: {
-    ApiInterface,
-  },
-};
+const isLoggedIn = ref(false);
+const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+
+// initialize components based on data attribute selectors
+onMounted(() => {
+  initAccordions();
+  initCarousels();
+  initCollapses();
+  initDials();
+  initDismisses();
+  initDrawers();
+  initDropdowns();
+  initModals();
+  initPopovers();
+  initTabs();
+  initTooltips();
+});
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
